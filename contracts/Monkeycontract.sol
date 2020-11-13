@@ -9,7 +9,7 @@ import "./Safemath.sol";
 // importing ERC721 token standard interface, all functions need to be fully created  - implement
 import "./IERC721.sol";
 
-contract Monkeycontract is IERC721 {
+contract MonkeyContract is IERC721 {
 
   // using safemath, now should use uint256 for all numbers  - seems done
   using SafeMath for uint256; 
