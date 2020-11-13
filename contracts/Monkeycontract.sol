@@ -62,28 +62,28 @@ contract Monkeycontract is IERC721 {
   // Returns the name of the token. - seems done
   function name() external view returns (string memory tokenName){
     return _name;
-  };
+  }
 
   
   // Returns the symbol of the token. - seems done  
   function symbol() external view returns (string memory tokenSymbol){
     return _symbol;
-  };
+  }
 
   // query the totalSupply - seems done
   function totalSupply() external view returns (uint256 total){
     return _totalSupply;
-  };
+  }
 
   // Returns the number of tokens in ``owner``'s account. - seems done
   function balanceOf(address owner) external view returns (uint256 balance){
     return _numberOfCMOsOfAddressMapping[owner];
-  };
+  }
   
   // returns the owner of given tokenId, which is stored in the _monkeyIdsAndTheirOwnersMapping at the [tokenId] position - seems done
   function ownerOf(uint256 tokenId) external view returns (address owner){    
     return _monkeyIdsAndTheirOwnersMapping[tokenId];
-  };
+  }
 
   /*  need mint function.. needs to generate new ERC721, i.e.  - how can I store the ETH amount that was paid in the event I emit? what data type is ether?
   generate tokenId, - seems done
@@ -112,10 +112,11 @@ contract Monkeycontract is IERC721 {
     // So if we want a burning function, just transfer to a burn address, will still count towards totalSupply.  
     // We could also create another uint256 that keeps track of how many  CMOs are in that burn address, 
     // and then substract that number from totalSupply, so that we know how many are in circulation, unburned. Or similar.)
-    _totalSupply.length = _totalSupply.add(1);
+    _totalSupply = _totalSupply.add(1);
 
     // emitting the Minted event, logging the minting address (msg.sender) and the tokenId of the CMO that was minted
-    emit Minted (msg.sender, tokenId)
+    emit Minted (msg.sender, tokenId);
+
   }
 
   /* @dev Transfers `tokenId` token from `msg.sender` to `to`.
@@ -149,7 +150,7 @@ contract Monkeycontract is IERC721 {
     // updating "balance" of address in _numberOfCMOsOfAddressMapping, sender has 1 CMO less
     _numberOfCMOsOfAddressMapping[msg.sender].sub(1);
 
-    emit Transfer (msg.sender, to, tokenId)
+    emit Transfer (msg.sender, to, tokenId);
 
   } 
     
