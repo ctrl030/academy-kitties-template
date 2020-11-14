@@ -32,7 +32,32 @@ contract MonkeyContract is IERC721 {
   // mapping of all the tokenIDs and their ownerssss - will be queried by ownerOf function - seems done
   mapping (uint256 => address) private _monkeyIdsAndTheirOwnersMapping;
 
- 
+  // Mapping of all people (addresses), in which all mappings are saved, which map all the allowed people for a person 
+  // to a mapping, which holds 
+  // a mapping that maps all the pieces they can 
+  /*
+  in other words:
+  It is a register of all people, 
+  in there you find per person all the people that are allowed to take from them, as a key to a mapping, 
+  which holds all the pieces they are allowed to take, as a key to a mapping
+  which holds only the number 1 (this is used so that we can search for a piece by it's tokenId via a mapping, not via arrays or such)  
+  */
+  
+  mapping (address => mapping (address => mapping((uint256 => uint256))) private _allowances;
+
+
+
+  /* 
+  build a mapping or some kind of storage that
+  in other words:
+  it is a register of all people, in there you find per person all the people that allow them to take their CMO and in that all the CMO they allow you to take
+
+  Jake allows Tom to take CMO1 and CMO2
+  mapping (address => address )
+
+  mapping( Jake => allofJakesAllowedPeople => Tom => allTheCMOsThatTomCanTake => CMO1, CMO2)
+
+  */
 
   // Events
 
