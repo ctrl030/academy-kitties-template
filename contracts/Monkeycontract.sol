@@ -28,36 +28,23 @@ contract MonkeyContract is IERC721 {
 
   // a mapping to store each address's number of Crypto Monkeys - will be queried by balanceOf function - must update at minting (seems done) and transfer (seems done)
   mapping(address => uint256) private _numberOfCMOsOfAddressMapping;
- 
-  // mapping of all the tokenIDs and their ownerssss - will be queried by ownerOf function - seems done
-  mapping (uint256 => address) private _monkeyIdsAndTheirOwnersMapping;
 
-  // Mapping of all people (addresses), in which all mappings are saved, which map all the allowed people for a person 
-  // to a mapping, which holds 
-  // a mapping that maps all the pieces they can 
-  /*
-  in other words:
-  It is a register of all people, 
-  in there you find per person all the people that are allowed to take from them, as a key to a mapping, 
-  which holds all the pieces they are allowed to take, as a key to a mapping
-  which holds only the number 1 (this is used so that we can search for a piece by it's tokenId via a mapping, not via arrays or such)  
+
+  /* trying it with one mapping only
+  // mapping of all the tokenIds and their ownerssss - will be queried by ownerOf function - seems done
+  mapping (uint256 => address) private _monkeyIdsAndTheirOwnersMapping;
   */
   
-  mapping (address => mapping (address => mapping((uint256 => uint256))) private _allowances;
+  // mapping of all the tokenIds and their owners and their allowedAddress;
+  mapping (uint256 => mapping (address => address)) private _CMO2owner2allowedAddressMapping;
 
-
-
-  /* 
-  build a mapping or some kind of storage that
-  in other words:
-  it is a register of all people, in there you find per person all the people that allow them to take their CMO and in that all the CMO they allow you to take
-
-  Jake allows Tom to take CMO1 and CMO2
-  mapping (address => address )
-
-  mapping( Jake => allofJakesAllowedPeople => Tom => allTheCMOsThatTomCanTake => CMO1, CMO2)
-
+  /* older version, trying it easier
+  // mapping, so that each address can have a list of their CMOs and inside that an address, that is allowed to take/move that CMO
+  mapping (address => mapping (uint256 => address)) private _address2CMO2allowedAddressMapping;
   */
+
+  
+
 
   // Events
 
@@ -72,63 +59,75 @@ contract MonkeyContract is IERC721 {
 
 
 
-  // Constructor function, is setting _name, _symbol and _totalSupply  - seems done
+  // Constructor function, is setting _name, and _symbol and - seems done
 
   constructor () public {
     _name = "Crypto Monkeys";
-    _symbol = "CMO";
-    _totalSupply = 0;    
+    _symbol = "CMO";       
   } 
 
 
   // Functions
 
+  // allows another address to take / move your CMO
+  function approve(uint256 tokenId, address allowedAddress) public {   
+
+    // requires that the msg.sender is the owner of the CMO to be moved
+    require (_CMO2owner2allowedAddressMapping[tokenId] == msg.sender);
+    _CMO2owner2allowedAddressMapping[tokenId][msg.sender] = allowedAddress;
+
+    emit Approval(msg.sender, allowedAddress, tokenId); 
+
+    /*  older version, trying it easier
+    // mapping the allowedAddress to the CMO (tokenId) to be taken/moved, inside the mapping that maps all CMOs to their owners.
+    _address2CMO2allowedAddressMapping[msg.sender][tokenId] = allowedAddress;
+    */
+
+  }
+
   
   // Returns the name of the token. - seems done
-  function name() external view returns (string memory tokenName){
+  function name() external view returns (string memory){
     return _name;
   }
 
   
   // Returns the symbol of the token. - seems done  
-  function symbol() external view returns (string memory tokenSymbol){
+  function symbol() external view returns (string memory){
     return _symbol;
   }
 
   // query the totalSupply - seems done
-  function totalSupply() external view returns (uint256 total){
+  function totalSupply() external view returns (uint256){
     return _totalSupply;
   }
 
   // Returns the number of tokens in ``owner``'s account. - seems done
-  function balanceOf(address owner) external view returns (uint256 balance){
+  function balanceOf(address owner) external view returns (uint256){
     return _numberOfCMOsOfAddressMapping[owner];
   }
   
-  // returns the owner of given tokenId, which is stored in the _monkeyIdsAndTheirOwnersMapping at the [tokenId] position - seems done
-  function ownerOf(uint256 tokenId) external view returns (address owner){    
-    return _monkeyIdsAndTheirOwnersMapping[tokenId];
+  // returns the owner of given tokenId, which is stored in the _CMO2owner2allowedAddressMapping at the [tokenId] position - seems done
+  function ownerOf(uint256 tokenId) external view returns (address){    
+    return _CMO2owner2allowedAddressMapping[tokenId];
   }
 
   /*  need mint function.. needs to generate new ERC721, i.e.  - how can I store the ETH amount that was paid in the event I emit? what data type is ether?
   generate tokenId, - seems done
   store it and assign it to the owner in a mapping  - seems done
-  make transferable  - seems done, just change owner via transfer function in the _monkeyIdsAndTheirOwnersMapping
+  make transferable  - seems done, just change owner via transfer function in the _CMO2owner2allowedAddressMapping
   emit Minted - seems done
  */
-  function mint () public payable {
-    // requires payment of 0.1 ether to use this function
-    require(msg.value >= 0.1 ether);
-
+  function mint () public {  
     // declaring tokenId variable, the variable has only the scope of this function and will dissolve after running it, but...
     uint256 tokenId;
 
     // ... we set the tokenId for this token that is being minted to the amount of the _totalSupply (first CMO will have tokenId = 0, and so on) and then..
     tokenId = _totalSupply;
 
-    // ... save this tokenId to te _monkeyIdsAndTheirOwnersMapping where we keep all of the tokenIds, 
+    // ... save this tokenId to te _CMO2owner2allowedAddressMapping where we keep all of the tokenIds, 
     // and assign and owner to them, which at the moment of minting is the msg.sender
-    _monkeyIdsAndTheirOwnersMapping[tokenId] = msg.sender;
+    _CMO2owner2allowedAddressMapping[tokenId] = msg.sender;
 
     // then we add 1 to the _numberOfCMOsOfAddressMapping, where we store all the addresses that own Crypto Monkeys and the amount of them
     _numberOfCMOsOfAddressMapping[msg.sender].add(1);
@@ -164,16 +163,21 @@ contract MonkeyContract is IERC721 {
     // require (to != );
 
     // `tokenId` token must be owned by `msg.sender`
-    require (_monkeyIdsAndTheirOwnersMapping[tokenId] == msg.sender);
+    require (_CMO2owner2allowedAddressMapping[tokenId] == msg.sender);
 
-    // transferring, i.e. changing ownership entry in the _monkeyIdsAndTheirOwnersMapping for the tokenId
-    _monkeyIdsAndTheirOwnersMapping[tokenId] = to;
+    try {
+      // transferring, i.e. changing ownership entry in the _CMO2owner2allowedAddressMapping for the tokenId
+    _CMO2owner2allowedAddressMapping[tokenId] = to;
+    _CMO2owner2allowedAddressMapping[tokenId][to] = to;
 
     // updating "balance" of address in _numberOfCMOsOfAddressMapping, 'to' address has 1 CMO more
     _numberOfCMOsOfAddressMapping[to].add(1);
 
     // updating "balance" of address in _numberOfCMOsOfAddressMapping, sender has 1 CMO less
     _numberOfCMOsOfAddressMapping[msg.sender].sub(1);
+
+    }
+    
 
     emit Transfer (msg.sender, to, tokenId);
 
