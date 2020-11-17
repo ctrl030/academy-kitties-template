@@ -26,6 +26,18 @@ contract MonkeyContract is IERC721 {
   // storing the totalSupply - will be queried by totalSupply function - needs to be updated via a real mint function later (connect to Monkey Factory) - seems done for now
   uint256 private _totalSupply;
 
+
+  struct CryptoMonkey {
+    uint256 genes;
+    uint256 birthtime;
+    uint256 motherId;
+    uint256 fatherId;
+    uint256 generation;
+  }
+
+  CryptoMonkey[] public monkeys;
+
+
   // a mapping to store each address's number of Crypto Monkeys - will be queried by balanceOf function - must update at minting (seems done) and transfer (seems done)
   mapping(address => uint256) private _numberOfCMOsOfAddressMapping;
 
@@ -34,18 +46,7 @@ contract MonkeyContract is IERC721 {
   
   // mapping of the allowed addresses for a piece - entry must be deleted when CMO is transfered - seems done
   mapping (uint256 => address) private _CMO2AllowedAddressMapping;
-
-
-  /* older version, trying it easier now
-  // mapping of all the tokenIds and their owners and their allowedAddress;
-  mapping (uint256 => mapping (address => address)) private _CMO2owner2allowedAddressMapping;
   
-  // mapping, so that each address can have a list of their CMOs and inside that an address, that is allowed to take/move that CMO
-  mapping (address => mapping (uint256 => address)) private _address2CMO2allowedAddressMapping;
-  */
-
-  
-
 
   // Events
 
@@ -81,11 +82,6 @@ contract MonkeyContract is IERC721 {
 
     emit Approval(msg.sender, allowedAddress, tokenId); 
 
-    /*  older version, trying it easier
-    // mapping the allowedAddress to the CMO (tokenId) to be taken/moved, inside the mapping that maps all CMOs to their owners.
-    _address2CMO2allowedAddressMapping[msg.sender][tokenId] = allowedAddress;
-    */
-
   }
 
   
@@ -115,12 +111,14 @@ contract MonkeyContract is IERC721 {
     return _monkeyIdsAndTheirOwnersMapping[tokenId];
   }
 
-  /*  need mint function.. needs to generate new ERC721, i.e.  - how can I store the ETH amount that was paid in the event I emit? what data type is ether?
+  /*  need mint function.. needs to generate new ERC721, i.e.  
+  - how can I store the ETH amount that was paid in the event I emit? answer: msg.value, and ether is uint256 data type - seems done
   generate tokenId, - seems done
   store it and assign it to the owner in a mapping  - seems done
   make transferable  - seems done, just change owner via transfer function in the _monkeyIdsAndTheirOwnersMapping
   emit Minted - seems done
  */
+
   function mint () public {  
     // declaring tokenId variable, the variable has only the scope of this function and will dissolve after running it, but...
     uint256 tokenId;
@@ -129,7 +127,7 @@ contract MonkeyContract is IERC721 {
     tokenId = _totalSupply;
 
     // ... save this tokenId to te _monkeyIdsAndTheirOwnersMapping where we keep all of the tokenIds, 
-    // and assign and owner to them, which at the moment of minting is the msg.sender
+    // and assign an owner to them, which at the moment of minting is the msg.sender
     _monkeyIdsAndTheirOwnersMapping[tokenId] = msg.sender;
 
     // adds 1 to the _numberOfCMOsOfAddressMapping, where we store all the addresses that own Crypto Monkeys and the amount of them
