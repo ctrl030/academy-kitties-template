@@ -6,7 +6,7 @@ import "./Ownable.sol";
 // using safemath to rule out over- and underflow and such  - seems done
 import "./Safemath.sol";
 
-// importing ERC721 token standard interface, all functions need to be fully created  - implement
+// importing ERC721 token standard interface, all functions need to be fully created  - seems done?
 import "./IERC721.sol";
 
 contract MonkeyContract is IERC721 {
@@ -23,7 +23,7 @@ contract MonkeyContract is IERC721 {
   // 1 symbol to store - will be queried by symbol function - seems done
   string private _symbol;
 
-  // storing the totalSupply - will be queried by totalSupply function - needs to be updated via a real mint function later (connect to Monkey Factory) - done for now
+  // storing the totalSupply - will be queried by totalSupply function - needs to be updated via a real mint function later (connect to Monkey Factory) - seems done for now
   uint256 private _totalSupply;
 
   // a mapping to store each address's number of Crypto Monkeys - will be queried by balanceOf function - must update at minting (seems done) and transfer (seems done)
@@ -36,10 +36,9 @@ contract MonkeyContract is IERC721 {
   mapping (uint256 => address) private _CMO2AllowedAddressMapping;
 
 
-  /* older version, trying it easier
+  /* older version, trying it easier now
   // mapping of all the tokenIds and their owners and their allowedAddress;
   mapping (uint256 => mapping (address => address)) private _CMO2owner2allowedAddressMapping;
-
   
   // mapping, so that each address can have a list of their CMOs and inside that an address, that is allowed to take/move that CMO
   mapping (address => mapping (uint256 => address)) private _address2CMO2allowedAddressMapping;
