@@ -62,7 +62,7 @@ contract MonkeyContract is IERC721 {
 
 
 
-  // Constructor function, is setting _name, and _symbol and - seems done
+  // Constructor function, is setting _name, and _symbol - seems done
 
   constructor () public {
     _name = "Crypto Monkeys";
@@ -88,15 +88,14 @@ contract MonkeyContract is IERC721 {
       generation: uint256(_generation), 
       genes: _genes,
       birthtime: uint256(now)  
-    })
+    });
 
     // the push function returns the length of the array, so we use that directly and save it as the ID, starting with 0
     uint256 newMonkeyId = monkeys.push(newMonkey) -1;
 
-
+    _transferCallfromInside(address(0), _owner, newMonkeyId);
   }
-
-
+ 
 
   // allows another address to take / move your CMO
   function approve(uint256 tokenId, address allowedAddress) public {   
@@ -128,7 +127,7 @@ contract MonkeyContract is IERC721 {
     return _totalSupply;
   }
 
-  // Returns the number of tokens in ``owner``'s account. - seems done
+  // Returns the number of tokens in "owner" 's account. - seems done
   function balanceOf(address owner) external view returns (uint256){
     return _numberOfCMOsOfAddressMapping[owner];
   }
@@ -138,51 +137,7 @@ contract MonkeyContract is IERC721 {
     return _monkeyIdsAndTheirOwnersMapping[tokenId];
   }
 
-  /*  need mint function.. needs to generate new ERC721, i.e.  
-  - how can I store the ETH amount that was paid in the event I emit? answer: msg.value, and ether is uint256 data type - seems done
-  generate tokenId, - seems done
-  store it and assign it to the owner in a mapping  - seems done
-  make transferable  - seems done, just change owner via transfer function in the _monkeyIdsAndTheirOwnersMapping
-  emit Minted - seems done
- */
-
-  function mint () public {  
-    // declaring tokenId variable, the variable has only the scope of this function and will dissolve after running it, but...
-    uint256 tokenId;
-
-    // ... we set the tokenId for this token that is being minted to the amount of the _totalSupply (first CMO will have tokenId = 0, and so on) and then..
-    tokenId = _totalSupply;
-
-    // ... save this tokenId to te _monkeyIdsAndTheirOwnersMapping where we keep all of the tokenIds, 
-    // and assign an owner to them, which at the moment of minting is the msg.sender
-    _monkeyIdsAndTheirOwnersMapping[tokenId] = msg.sender;
-
-    // adds 1 to the _numberOfCMOsOfAddressMapping, where we store all the addresses that own Crypto Monkeys and the amount of them
-    _numberOfCMOsOfAddressMapping[msg.sender].add(1);
-
-    // we update the _totalSupply (as we use this variable to generate the tokenIds, this will never go down, because that would create double ids, etc. 
-    // So if we want a burning function, just transfer to a burn address, will still count towards totalSupply.  
-    // We could also create another uint256 that keeps track of how many CMOs are in that burn address, 
-    // and then substract that number from totalSupply into another uint256 variable, so that we know how many are in circulation, unburned. Or similar.)
-    _totalSupply = _totalSupply.add(1);
-
-    // emitting the Minted event, logging the minting address (msg.sender) and the tokenId of the CMO that was minted
-    emit Minted (msg.sender, tokenId);
-
-  }
-
-  /* @dev Transfers `tokenId` token from `msg.sender` to `to`.
-  *
-  * Requirements:
-  *
-  * - `to` cannot be the zero address. - seems done
-  * - `to` can not be the contract address.  seems done
-  * - `tokenId` token must be owned by `msg.sender`. - seems done
-  *
-  * Emits a {Transfer} event.
-  */
-
-  function transferCallFromOutside (address _to, uint256 _tokenId) external {
+  function transfer (address _to, uint256 _tokenId) external {
 
     //`to` cannot be the zero address. 
     require (_to != address(0));
@@ -193,13 +148,11 @@ contract MonkeyContract is IERC721 {
     // `tokenId` token must be owned by `msg.sender`
     require (_monkeyIdsAndTheirOwnersMapping[_tokenId] == msg.sender);
 
-    _transferCallfromInside
+    _transferCallfromInside(msg.sender, _to, _tokenId);
 
   } 
     
   function _transferCallfromInside (address _from, address _to, uint256 _tokenId) internal {
-
-
     
     // deleting any allowed address for the transfered CMO
     delete _CMO2AllowedAddressMapping[_tokenId];
@@ -211,9 +164,12 @@ contract MonkeyContract is IERC721 {
     _numberOfCMOsOfAddressMapping[_to].add(1);
 
     // updating "balance" of address in _numberOfCMOsOfAddressMapping, sender has 1 CMO less
-    _numberOfCMOsOfAddressMapping[_from].sub(1);
-    
-    
+
+    if (_from != address(0)) {
+      _numberOfCMOsOfAddressMapping[_from].sub(1);
+    }
+        
+    // what is with try and catch? XXX
     //catch (err) {
     //  console.log("Error is: " + err);
     //}
