@@ -73,11 +73,8 @@ contract MonkeyContract is IERC721 {
   // Functions
 
   function createGen0Monkey (uint256 _genes) public onlyOwner {
-
     _createMonkey(0,0,0, _genes, msg.sender);
-
   }
-
 
   // this function is going to be used for creating gen0 monkeys and also for creating monkeys from combining monkeys, returns monkey ID (tokenId?) - connect / fix / finish
   function _createMonkey (            
@@ -109,6 +106,24 @@ contract MonkeyContract is IERC721 {
 
   }
  
+  function findMonkey(uint256 tokenId) public view returns (
+    uint256 genes;
+    uint256 birthtime;
+    uint256 parent1Id;
+    uint256 parent2Id;
+    uint256 generation;
+    address owner;
+    address approvedAddress) {
+
+    return monkeys[tokenId].genes;
+    return monkeys[tokenId].birthtime;
+    return monkeys[tokenId].parent1Id;
+    return monkeys[tokenId].parent2Id;
+    return monkeys[tokenId].generation;    
+    return _monkeyIdsAndTheirOwnersMapping[tokenId];  
+    return _CMO2AllowedAddressMapping[_tokenId];
+  }
+
 
   // allows another address to take / move your CMO
   function approve(uint256 tokenId, address allowedAddress) public {   
