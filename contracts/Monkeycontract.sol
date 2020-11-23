@@ -26,15 +26,16 @@ contract MonkeyContract is IERC721 {
   // storing the totalSupply - will be queried by totalSupply function - needs to be updated via a real mint function later (connect to Monkey Factory) - seems done for now
   uint256 private _totalSupply;
 
-
+  // this struct is the blueprint for new CMOs. They will be created from it
   struct CryptoMonkey {
     uint256 genes;
     uint256 birthtime;
-    uint256 motherId;
-    uint256 fatherId;
+    uint256 parent1Id;
+    uint256 parent2Id;
     uint256 generation;
   }
 
+  // This array holds all CMOs it seems (CryptoMonkey)
   CryptoMonkey[] public monkeys;
 
 
@@ -70,6 +71,32 @@ contract MonkeyContract is IERC721 {
 
 
   // Functions
+
+  // this funciton is going to be used for creating gen0 monkeys and also for creating monkeys from combining monkeys, returns monkey ID (tokenId?) - connect / fix / finish
+  function _createMonkey (            
+      uint256 _parent1Id,
+      uint256 _parent2Id,
+      uint256 _generation,
+      uint256 _genes,     
+      address _owner
+    ) private returns (uint256) {
+
+    // uses the CryptoMonkey struct as template and creates a newMonkey from it
+    CryptoMonkey memory newMonkey = CryptoMonkey ({
+      parent1Id: uint256(_parent1Id),
+      parent2Id: uint256(_parent2Id),
+      generation: uint256(_generation), 
+      genes: _genes,
+      birthtime: uint256(now)  
+    })
+
+    // the push function returns the length of the array, so we use that directly and save it as the ID, starting with 0
+    uint256 newMonkeyId = monkeys.push(newMonkey) -1;
+
+
+  }
+
+
 
   // allows another address to take / move your CMO
   function approve(uint256 tokenId, address allowedAddress) public {   
@@ -155,37 +182,47 @@ contract MonkeyContract is IERC721 {
   * Emits a {Transfer} event.
   */
 
-  function transfer(address to, uint256 tokenId) public {
+  function transferCallFromOutside (address _to, uint256 _tokenId) external {
 
     //`to` cannot be the zero address. 
-    require (to != address(0));
+    require (_to != address(0));
 
     // to` can not be the contract address.
-    require (to != address(this));
+    require (_to != address(this));
 
     // `tokenId` token must be owned by `msg.sender`
-    require (_monkeyIdsAndTheirOwnersMapping[tokenId] == msg.sender);
+    require (_monkeyIdsAndTheirOwnersMapping[_tokenId] == msg.sender);
 
-    // try {
-      // deleting any allowed address for the transfered CMO
-      delete _CMO2AllowedAddressMapping[tokenId];
+    _transferCallfromInside
 
-      // transferring, i.e. changing ownership entry in the _monkeyIdsAndTheirOwnersMapping for the tokenId
-      _monkeyIdsAndTheirOwnersMapping[tokenId] = to;  
+  } 
+    
+  function _transferCallfromInside (address _from, address _to, uint256 _tokenId) internal {
 
-      // updating "balance" of address in _numberOfCMOsOfAddressMapping, 'to' address has 1 CMO more
-      _numberOfCMOsOfAddressMapping[to].add(1);
 
-      // updating "balance" of address in _numberOfCMOsOfAddressMapping, sender has 1 CMO less
-      _numberOfCMOsOfAddressMapping[msg.sender].sub(1);
-    //}
+    
+    // deleting any allowed address for the transfered CMO
+    delete _CMO2AllowedAddressMapping[_tokenId];
+
+    // transferring, i.e. changing ownership entry in the _monkeyIdsAndTheirOwnersMapping for the tokenId
+    _monkeyIdsAndTheirOwnersMapping[_tokenId] = _to;  
+
+    // updating "balance" of address in _numberOfCMOsOfAddressMapping, 'to' address has 1 CMO more
+    _numberOfCMOsOfAddressMapping[_to].add(1);
+
+    // updating "balance" of address in _numberOfCMOsOfAddressMapping, sender has 1 CMO less
+    _numberOfCMOsOfAddressMapping[_from].sub(1);
+    
     
     //catch (err) {
     //  console.log("Error is: " + err);
     //}
 
-    emit Transfer (msg.sender, to, tokenId);
+    emit Transfer (_from, _to, _tokenId);
+  }
 
-  } 
-    
+
+
+
+
 }
