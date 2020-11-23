@@ -9,7 +9,7 @@ import "./Safemath.sol";
 // importing ERC721 token standard interface, all functions need to be fully created  - seems done?
 import "./IERC721.sol";
 
-contract MonkeyContract is IERC721 {
+contract MonkeyContract is IERC721, Ownable {
 
   // using safemath, now should use uint256 for all numbers  - seems done
   using SafeMath for uint256; 
@@ -107,21 +107,23 @@ contract MonkeyContract is IERC721 {
   }
  
   function findMonkey(uint256 tokenId) public view returns (
-    uint256 genes;
-    uint256 birthtime;
-    uint256 parent1Id;
-    uint256 parent2Id;
-    uint256 generation;
-    address owner;
+    uint256 genes,
+    uint256 birthtime,
+    uint256 parent1Id,
+    uint256 parent2Id,
+    uint256 generation,
+    address owner,
     address approvedAddress) {
 
-    return monkeys[tokenId].genes;
-    return monkeys[tokenId].birthtime;
-    return monkeys[tokenId].parent1Id;
-    return monkeys[tokenId].parent2Id;
-    return monkeys[tokenId].generation;    
-    return _monkeyIdsAndTheirOwnersMapping[tokenId];  
-    return _CMO2AllowedAddressMapping[_tokenId];
+    return (
+    monkeys[tokenId].genes, 
+    monkeys[tokenId].birthtime,
+    monkeys[tokenId].parent1Id,
+    monkeys[tokenId].parent2Id,
+    monkeys[tokenId].generation,    
+    _monkeyIdsAndTheirOwnersMapping[tokenId],  
+    _CMO2AllowedAddressMapping[tokenId]
+    );
   }
 
 
