@@ -57,8 +57,8 @@ contract MonkeyContract is IERC721 {
   // Approval event, emit after successful approval with these parameters  - implement "you can transfer my CMO - functionality"
   event Approval(address indexed owner, address indexed approved, uint256 indexed tokenId);
 
-  // Minted event, emit after successful minting with these parameters  -  seems done
-  event Minted (address owner, uint256 tokenId);
+  // Creation event, emit after successful CMO creation with these parameters  -  seems done
+  event MonkeyCreated (address owner, uint256 tokenId, uint256 parent1Id, uint256 parent2Id, uint256 genes);
 
 
 
@@ -72,7 +72,14 @@ contract MonkeyContract is IERC721 {
 
   // Functions
 
-  // this funciton is going to be used for creating gen0 monkeys and also for creating monkeys from combining monkeys, returns monkey ID (tokenId?) - connect / fix / finish
+  function createGen0Monkey (uint256 _genes) public onlyOwner {
+
+    _createMonkey(0,0,0, _genes, msg.sender);
+
+  }
+
+
+  // this function is going to be used for creating gen0 monkeys and also for creating monkeys from combining monkeys, returns monkey ID (tokenId?) - connect / fix / finish
   function _createMonkey (            
       uint256 _parent1Id,
       uint256 _parent2Id,
@@ -91,9 +98,15 @@ contract MonkeyContract is IERC721 {
     });
 
     // the push function returns the length of the array, so we use that directly and save it as the ID, starting with 0
-    uint256 newMonkeyId = monkeys.push(newMonkey) -1;
+    uint256 newMonkeyId = monkeys.push(newMonkey) -1;    
+
+    // emitting before the action
+    emit MonkeyCreated(_owner, newMonkeyId, _parent1Id, _parent2Id, _genes);
 
     _transferCallfromInside(address(0), _owner, newMonkeyId);
+
+    return newMonkeyId;
+
   }
  
 
@@ -103,19 +116,18 @@ contract MonkeyContract is IERC721 {
     // requires that the msg.sender is the owner of the CMO to be moved
     require (_monkeyIdsAndTheirOwnersMapping[tokenId] == msg.sender);
 
-    // stores the allowed address into the mapping for it, with the monkey being the key
-    _CMO2AllowedAddressMapping[tokenId] = allowedAddress;
-
+    // emitting before the action
     emit Approval(msg.sender, allowedAddress, tokenId); 
 
+    // stores the allowed address into the mapping for it, with the monkey being the key
+    _CMO2AllowedAddressMapping[tokenId] = allowedAddress;
+    
   }
-
   
   // Returns the name of the token. - seems done
   function name() external view returns (string memory){
     return _name;
   }
-
   
   // Returns the symbol of the token. - seems done  
   function symbol() external view returns (string memory){
@@ -149,7 +161,6 @@ contract MonkeyContract is IERC721 {
     require (_monkeyIdsAndTheirOwnersMapping[_tokenId] == msg.sender);
 
     _transferCallfromInside(msg.sender, _to, _tokenId);
-
   } 
     
   function _transferCallfromInside (address _from, address _to, uint256 _tokenId) internal {
@@ -176,9 +187,4 @@ contract MonkeyContract is IERC721 {
 
     emit Transfer (_from, _to, _tokenId);
   }
-
-
-
-
-
 }
