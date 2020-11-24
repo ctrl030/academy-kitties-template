@@ -17,6 +17,9 @@ contract MonkeyContract is IERC721, Ownable {
 
   // State variables
 
+  uint256 public GEN0_Limit = 12;
+  uint256 public gen0amountTotal;
+
   // 1 name to store - will be queried by name function  - seems done
   string private _name;
 
@@ -73,6 +76,10 @@ contract MonkeyContract is IERC721, Ownable {
   // Functions
 
   function createGen0Monkey (uint256 _genes) public onlyOwner {
+    require (gen0amountTotal < GEN0_Limit);
+
+    gen0amountTotal++;
+
     _createMonkey(0,0,0, _genes, msg.sender);
   }
 
